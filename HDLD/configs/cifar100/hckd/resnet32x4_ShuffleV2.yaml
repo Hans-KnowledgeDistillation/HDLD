@@ -1,0 +1,21 @@
+EXPERIMENT:
+  NAME: ""
+  TAG: "HCKD,res32x4,shuv2,wrn40"
+  PROJECT: "cifar100_baselines_hckd"
+DISTILLER:
+  TYPE: "HCKD"
+  TEACHER: "resnet32x4"
+  TEACHER2: "wrn_40_2"
+  STUDENT: "ShuffleV2"
+SOLVER:
+  BATCH_SIZE: 64
+  EPOCHS: 240
+  LR: 0.01
+  LR_DECAY_STAGES: [150, 180, 210]
+  LR_DECAY_RATE: 0.1
+  WEIGHT_DECAY: 0.0005
+  MOMENTUM: 0.9
+  TYPE: "SGD"
+HDLD:
+  ALPHA: 1.0
+  BETA: 2.0

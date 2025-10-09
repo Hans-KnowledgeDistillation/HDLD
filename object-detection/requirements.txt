@@ -1,0 +1,6 @@
+
+tensorboard-logger==0.1.0
+yacs
+wandb
+tqdm
+tensorboardX
