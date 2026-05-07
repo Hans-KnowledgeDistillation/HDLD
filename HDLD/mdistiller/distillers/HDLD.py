@@ -15,16 +15,6 @@ def normalize(logit):
     stdv = logit.std(dim=-1, keepdims=True)
     return (logit - mean) / (1e-7 + stdv)
 
-def cat_mask1(t, mask1, mask2, mask3, mask4, mask5, not_mask):
-    t1 = (t * mask1).sum(dim=1, keepdims=True)
-    t2 = (t * mask2).sum(dim=1, keepdims=True)
-    t3 = (t * mask3).sum(dim=1, keepdims=True)
-    t4 = (t * mask4).sum(dim=1, keepdims=True)
-    t5 = (t * mask5).sum(dim=1, keepdims=True)
-    tn = (t * not_mask).sum(1, keepdims=True)
-    rt = torch.cat([t1, t2, t3, t4, t5,tn], dim=1)
-    return rt
-
 def cat_mask(t, mask1, mask2, mask3, mask4, mask5, not_mask):
     t1 = (t * mask1).sum(dim=1, keepdims=True)
     t2 = (t * mask2).sum(dim=1, keepdims=True)
@@ -49,43 +39,6 @@ def _get_gt_mask(logits, target):
     target = target.reshape(-1)
     mask = torch.zeros_like(logits).scatter_(1, target.unsqueeze(1), 1).bool()
     return mask
-
-def hc_loss1(logits_student_in, logits_teacher_in, target, alpha, beta, temperature, logit_stand=False):
-    y_s = normalize(logits_student_in) if logit_stand else logits_student_in
-    y_t = normalize(logits_teacher_in) if logit_stand else logits_teacher_in
-
-    pred_student = F.softmax(y_s / temperature, dim=1)
-    pred_teacher = F.softmax(y_t / temperature, dim=1)
-    #s_mask_t = _get_gt_mask(y_s, target)
-
-    s_mask_5 = top_mask(y_t, 5).int() - top_mask(y_t, 4).int()
-    s_mask_4 = top_mask(y_t, 4).int() - top_mask(y_t, 3).int()
-    s_mask_3 = top_mask(y_t, 3).int() - top_mask(y_t, 2).int()
-    s_mask_2 = top_mask(y_t, 2).int() - top_mask(y_t, 1).int()
-    s_mask_1 = top_mask(y_t,1).int()
-    s_mask = top_mask(y_t, 5)
-    not_s_mask = top_not_mask(y_t, 5)
-    pred_student = cat_mask1(pred_student, s_mask_1, s_mask_2, s_mask_3, s_mask_4, s_mask_5, not_s_mask)
-    pred_teacher = cat_mask1(pred_teacher, s_mask_1, s_mask_2, s_mask_3, s_mask_4, s_mask_5, not_s_mask)
-
-    log_pred_student = torch.log(pred_student)
-    loss_top7 = (
-            F.kl_div(log_pred_student, pred_teacher, size_average=False)
-            * (temperature ** 2)
-            / target.shape[0]
-    )
-
-    pred_teacher_part2 = F.softmax(
-        y_t / temperature - 1000 * s_mask, dim=1
-    )
-    log_pred_student_part2 = F.log_softmax(
-        y_s / temperature - 1000 * s_mask, dim=1
-    )
-
-    not_loss_top7 = F.kl_div(log_pred_student_part2, pred_teacher_part2,
-                             size_average=False) * (temperature ** 2) / target.size()[0]
-
-    return alpha * loss_top7 + beta * not_loss_top7
 
 def hc_loss(logits_student_in, logits_teacher_in, target, alpha, beta, temperature, logit_stand=False):
     y_s = normalize(logits_student_in) if logit_stand else logits_student_in
