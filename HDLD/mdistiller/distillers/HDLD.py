@@ -106,13 +106,6 @@ class HDLD(Distiller):
             logit_stand=self.logit_stand,
         )
 
-        # loss_patch3 = min(kwargs["epoch"] / self.warmup, 1.0) * self.kd_loss_weight * multi(
-        #     patch_s3,
-        #     patch_t3,
-        #     target,
-        #     self.temperature,
-        #     logit_stand=self.logit_stand,
-        # )
 
         losses_dict = {
             "loss_ce": loss_ce,
